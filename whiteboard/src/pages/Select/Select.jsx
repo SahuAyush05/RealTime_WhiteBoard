@@ -1,7 +1,16 @@
 import React, { useState } from "react";
 import { FaArrowRight } from "react-icons/fa";
 import { LuLayoutDashboard } from "react-icons/lu";
+import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router";
+import { enableCanva } from "../../store/enable";
 const Select = () => {
+
+  const tabs=useSelector((state)=>state.enable.tabs);
+  const dispatch=useDispatch();
+  const handleBlankCanva=()=>{
+    dispatch(enableCanva(true));
+  }
   const [sessionId, setSessionId] = useState();
   return (
     <div className="w-[600px] h-[300px] bg-white rounded-xl shadow-lg flex flex-row z-[10]">
@@ -38,15 +47,16 @@ const Select = () => {
         </div>
       </div>
       <div className="w-[50%] my-4 mr-4 flex flex-col justify-center gap-4">
-        <div className=" h-[34%]  rounded-xl bg-[#1ABDB1] flex flex-col p-4 justify-center bg-opacity-70">
-          <div className="w-[50%] flex-row text-[1.2em] leading-none font-medium ">
-            <p >Blank</p>
-            <p>Canvas</p>
+        <Link to="/blankCanva" className="h-[34%]" onClick={handleBlankCanva}>
+          <div className=" h-full  rounded-xl bg-[#1ABDB1] flex flex-col p-4 justify-center bg-opacity-70">
+            <div className="w-[50%] flex-row text-[1.2em] leading-none font-medium ">
+              <p>Blank</p>
+              <p>Canvas</p>
+            </div>
           </div>
-         
-        </div>
+        </Link>
         <div className=" h-[34%] rounded-xl bg-[#ffbc5c] flex flex-col p-4 justify-center ">
-        <div className="w-[50%] flex-row text-[1.2em] leading-none font-medium ">
+          <div className="w-[50%] flex-row text-[1.2em] leading-none font-medium ">
             <p>Create</p>
             <p>Session</p>
           </div>

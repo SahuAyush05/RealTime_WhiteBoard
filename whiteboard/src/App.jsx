@@ -1,11 +1,38 @@
 import "./index.css";
+import { BrowserRouter as Router, Routes, Route } from "react-router";
 import Landing from "./pages/landing/Landing";
-
+import Next from "./pages/landing/next";
+import Select from "./pages/Select/Select";
+import PrivateRoute from "./routes/privateRoute";
+import Konvo from "./pages/canvas/Konvo";
+import RouteWatcher from "./routes/trackRoute";
 function App() {
   return (
-    <div className="flex flex-col min-h-screen">
-      <Landing/>
-    </div>
+    <Router>
+      <RouteWatcher>
+        <Routes>
+          <Route path="/" element={<Landing />}>
+            <Route index element={<Next />} />
+            <Route
+              path="/select"
+              element={
+                <PrivateRoute>
+                  <Select />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/blankCanva"
+              element={
+                <PrivateRoute>
+                  <Konvo />
+                </PrivateRoute>
+              }
+            />
+          </Route>
+        </Routes>
+      </RouteWatcher>
+    </Router>
   );
 }
 

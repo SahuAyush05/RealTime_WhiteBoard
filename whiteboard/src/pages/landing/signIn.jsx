@@ -6,12 +6,14 @@ import { LuLayoutDashboard } from "react-icons/lu";
 import { FaArrowRight } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { signIn } from "../../store/authSlice";
+import { useNavigate } from "react-router";
 //import { notification, Space } from 'antd';
 
 
 const LoginPage = ({ setSignUp }) => {
   const dispatch = useDispatch();
-  const { status, error } = useSelector((state) => state.auth);
+  const { status, error,user } = useSelector((state) => state.auth);
+  const navigate=useNavigate();
   //Notification
   // const [api, contextHolder] = notification.useNotification();
 
@@ -38,7 +40,9 @@ const LoginPage = ({ setSignUp }) => {
   const handleSubmit = async (values, { setSubmitting, setErrors,resetForm }) => {
     try {
       await dispatch(signIn(values));
+      
       resetForm();
+      navigate("/select")
     } catch (error) {
       console.error("Login error", error);
       setErrors({
