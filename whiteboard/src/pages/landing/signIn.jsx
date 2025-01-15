@@ -1,48 +1,81 @@
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
-import axios from 'axios';
+import { useEffect } from "react";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import { LuUnlock } from "react-icons/lu";
+import { LuLayoutDashboard } from "react-icons/lu";
+import { FaArrowRight } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { signIn } from "../../store/authSlice";
+//import { notification, Space } from 'antd';
 
-const LoginPage = () => {
+
+const LoginPage = ({ setSignUp }) => {
+  const dispatch = useDispatch();
+  const { status, error } = useSelector((state) => state.auth);
+  //Notification
+  // const [api, contextHolder] = notification.useNotification();
+
+  // useEffect(() => {
+  //   if (status === "succeeded") {
+  //     api.success({
+  //       message: "Login Successful",
+  //       description: "You have logged in successfully.",
+  //     });
+  //   } else if (status === "failed") {
+  //     api.error({
+  //       message: "Login Failed",
+  //       description: error || "Invalid credentials. Please try again.",
+  //     });
+  //   }
+  // }, [status, error, api]);
   const validationSchema = Yup.object({
-    email: Yup.string()
-      .email('Invalid email address')
-      .required('Required'),
+    email: Yup.string().email("Invalid email address").required("Required"),
     password: Yup.string()
-      .min(6, 'Password must be at least 6 characters')
-      .required('Required'),
+      .min(6, "Password must be at least 6 characters")
+      .required("Required"),
   });
 
-  const handleSubmit = async (values, { setSubmitting, setErrors }) => {
+  const handleSubmit = async (values, { setSubmitting, setErrors,resetForm }) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', values);
-      console.log('Login successful', response.data);
-      // Save the token in localStorage or context
-      localStorage.setItem('token', response.data.token);
+      await dispatch(signIn(values));
+      resetForm();
     } catch (error) {
-      console.error('Login error', error);
-      setErrors({ email: 'Invalid credentials', password: 'Invalid credentials' });
+      console.error("Login error", error);
+      setErrors({
+        email: "Invalid credentials",
+        password: "Invalid credentials",
+      });
     }
     setSubmitting(false);
+    
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded shadow-lg">
-        <h2 className="text-2xl font-bold text-center">Login</h2>
+    <div className="w-[400px] h-[300px] p-4 space-y-8 bg-white rounded-xl shadow-lg flex flex-row z-[10]">
+      <div className="w-full">
+        <div className="flex flex-row items-center text-xl text-bold gap-2 justify-center m-2">
+          <LuUnlock />
+          <h2 className="text-2xl font-bold text-center ">SignIn</h2>
+        </div>
+        <div className="flex flex-row items-center text-bold gap-2 justify-center m-2">
+          <p className="text-center">Login to Create a New Project</p>
+          <LuLayoutDashboard className="text-2xl" />
+        </div>
+
         <Formik
-          initialValues={{ email: '', password: '' }}
+          initialValues={{ email: "", password: "" }}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
           {({ isSubmitting }) => (
-            <Form className="space-y-6">
+            <Form className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
                 <Field
                   type="email"
                   name="email"
                   id="email"
-                  className="w-full px-3 py-2 mt-1 border rounded shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+                  className="w-full px-3 py-2 mt-1 h-12 border rounded shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+                  placeholder="E-mail"
                 />
                 <ErrorMessage
                   name="email"
@@ -50,32 +83,40 @@ const LoginPage = () => {
                   className="text-sm text-red-600"
                 />
               </div>
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-                <Field
-                  type="password"
-                  name="password"
-                  id="password"
-                  className="w-full px-3 py-2 mt-1 border rounded shadow-sm focus:outline-none focus:ring focus:border-blue-300"
-                />
-                <ErrorMessage
-                  name="password"
-                  component="div"
-                  className="text-sm text-red-600"
-                />
-              </div>
-              <div>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700 focus:outline-none focus:ring focus:border-blue-300"
-                >
-                  {isSubmitting ? 'Logging in...' : 'Login'}
-                </button>
+              <div className="flex flex-row items-center">
+                <div className="w-[80%] ">
+                  <Field
+                    type="password"
+                    name="password"
+                    id="password"
+                    className="w-full px-3 h-12 py-2 mt-1 border rounded shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+                    placeholder="Password"
+                  />
+                  <ErrorMessage
+                    name="password"
+                    component="div"
+                    className="text-sm text-red-600"
+                  />
+                </div>
+                <div className="w-[20%] h-12 mt-1">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="bg-gray-300 h-12 w-full rounded hover:bg-[#4959AC]"
+                  >
+                    <FaArrowRight className="m-auto text-white" />
+                  </button>
+                </div>
               </div>
             </Form>
           )}
         </Formik>
+        <div className="my-4 flex flex-row gap-2 justify-center">
+          <h3>Didn't have account?</h3>
+          <button className="text-[#4959AC]" onClick={() => setSignUp(true)}>
+            SignUp
+          </button>
+        </div>
       </div>
     </div>
   );

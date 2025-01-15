@@ -1,13 +1,11 @@
-import "./App.css";
-import LoginPage from "./pages/landing/signIn";
-import SignupPage from "./pages/landing/signUp";
+import "./index.css";
+import Landing from "./pages/landing/Landing";
 
 function App() {
   return (
-    <>
-      {/* <LoginPage/> */}
-      <SignupPage/>
-    </>
+    <div className="flex flex-col min-h-screen">
+      <Landing/>
+    </div>
   );
 }
 
