@@ -5,27 +5,34 @@ import { Outlet } from "react-router";
 import { useSelector } from "react-redux";
 const Landing = () => {
   const tabs = useSelector((state) => state.enable.tabs);
-  return (
-    <div className="flex flex-col h-[100vh]">
-      <div className="h-[8%]">
-        <Header />
-      </div>
 
-      <div className="flex h-[80%] px-4 my-16 flex-row items-center">
-        <Sidebar className="w-[10%]" />
-        <div className="w-[90%] pl-[10%] flex justify-center bg-blur-sm ">
+  return (
+    <div className={`flex flex-col min-h-screen bg-gray-100`}>
+      <header className={`h-[2.8em] bg-gray-200 ${
+          tabs ? "":"blur-sm"
+        }`}>
+        <Header />
+      </header>
+      <main className={`flex flex-1 items-center relative bg-gray-200 justify-center h-[80%]`}>
+        <aside className={`"w-[4%] ml-6 bg-gray-400/10  ${
+          tabs ? "":"blur-sm"
+        }`}>
+          <Sidebar />
+        </aside>
+        <section className="flex-1  bg-gray-100  overflow-hidden">
           <div
-            className={`w-screen fixed top-0 left-0 h-screen ${
-              tabs ? "" : "backdrop-blur-sm"
-            } bg-gray-400/10 flex justify-center align-middle items-center`}
+            className={`absolute top-0 left-[6%] w-[94%] h-full flex items-center justify-center`}
           >
             <Outlet />
           </div>
-        </div>
-      </div>
-      <div className="h-[8%]">
+        </section>
+      </main>
+      <footer className={`h-[8%] bg-gray-100 shadow-md ${
+          tabs ? "":"blur-sm"
+        }`}>
         <Footer />
-      </div>
+      </footer>
+      
     </div>
   );
 };

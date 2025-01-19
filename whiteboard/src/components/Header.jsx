@@ -6,7 +6,7 @@ import { FaRegShareSquare } from "react-icons/fa";
 import { RiMoreFill } from "react-icons/ri";
 const Header = () => {
   return (
-    <header className=" h-full pb-4 flex flex-row m-1 justify-between">
+    <header className=" h-full flex flex-row justify-between items-center">
       <button
         className="w-[10%] rounded-sm h-full flex justify-center gap-2  items-center bg-white border-1"
         disabled="true"
@@ -20,7 +20,7 @@ const Header = () => {
       >
         <h3>Whiteboard</h3> <FaChevronDown className="pt-1" />
       </button>
-      <div className="bg-white rounded-2xl w-[70%] ml-[0.3em] flex">
+      <div className="bg-white rounded-2xl w-[70%] ml-[0.3em] h-[2.4em] flex">
         <button className="w-[7%] bg-[#4959AC] h-full rounded-2xl flex items-center pl-4" disabled="true">
           <HiMiniUsers className="text-[1.3em] text-white" />
           <IoMdAdd className="text-white" />
