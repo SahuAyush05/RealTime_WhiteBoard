@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from "react";
-
+/* eslint-disable react/prop-types */
+import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { changeMarkerColor, changeDashValue } from "../../store/toolBoxSlice";
+import { setStrokeWidth } from "../../store/boardSlice";
 const ToolButton = ({
   type,
   icon: Icon,
@@ -10,9 +13,18 @@ const ToolButton = ({
   disabled,
 }) => {
   const [openDropdown, setOpenDropdown] = useState(false);
+  const dispatch = useDispatch();
 
   const toggleDropdown = () => {
     setOpenDropdown(!openDropdown);
+  };
+  const handleChangeMarker = ({ color, width }) => {
+    dispatch(changeMarkerColor(color));
+    dispatch(setStrokeWidth(width));
+  };
+  const handleChangePen = ({ dash, width }) => {
+    dispatch(changeDashValue(dash));
+    dispatch(setStrokeWidth(width));
   };
 
   useEffect(() => {
@@ -33,16 +45,16 @@ const ToolButton = ({
       <button
         className="h-[1.4em] m-2"
         disabled={disabled}
-        onClick={ toggleDropdown}
+        onClick={toggleDropdown}
       >
-        <Icon className="text-[1.2em]"  />
+        <Icon className="text-[1.2em]" />
       </button>
 
       {openDropdown && options.length > 0 && (
         <div className="absolute left-full  top-0 bg-white border rounded-md text-[1.2em] shadow-lg w-[40px] z-10 flex flex-col items-center justify-center">
           {options.map((option) => (
             <button
-            key={
+              key={
                 option.value === "pen"
                   ? option.type
                   : option.value === "marker"
@@ -55,12 +67,30 @@ const ToolButton = ({
               onClick={() => {
                 onChange(option.value);
                 setOpenDropdown(false);
+                option.value == "marker"
+                  ? handleChangeMarker({
+                      color: option.color,
+                      width: option.width,
+                    })
+                  : "";
+                option.value == "pen"
+                  ? handleChangePen({ dash: option.dash, width: option.width })
+                  : "";
+                option.value == "rect" ||
+                option.value == "ellipse" ||
+                option.value == "circle"
+                  ? dispatch(setStrokeWidth(4))
+                  : "";
               }}
             >
-                {value=="marker"?
-                <option.label style={{ color: option.color }} className={` w-[2em]`}/>:<option.label className="w-[2em]" />
-                }
-            
+              {value == "marker" ? (
+                <option.label
+                  style={{ color: option.color }}
+                  className={` w-[2em]`}
+                />
+              ) : (
+                <option.label className="w-[2em]" />
+              )}
             </button>
           ))}
         </div>
