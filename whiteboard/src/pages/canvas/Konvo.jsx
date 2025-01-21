@@ -1,5 +1,16 @@
+/* eslint-disable no-unused-vars */
 import { useRef, useCallback } from "react";
-import { Layer, Rect, Line, Stage, Circle, Ellipse , Arrow} from "react-konva";
+import {
+  Layer,
+  Rect,
+  Line,
+  Stage,
+  Circle,
+  Ellipse,
+  Arrow,
+  Text,
+  Image,
+} from "react-konva";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addRectangle,
@@ -14,27 +25,44 @@ import {
   updateEllipse,
   addArrow,
   updateArrow,
+  updateText,
+  startEditing,
+  setEditingOff,
+  updateImage,
+  addPage,
+  setActivePage,
 } from "../../store/boardSlice";
 import { v4 as uuid } from "uuid";
 
 const Konva = () => {
   const {
-    rectangles = [],
-    scribbles = [],
-    marker = [],
-    Circles = [],
-    Ellipses = [],
-    Arrows = [],
+    pages,
+    activePageIndex,
     strokeWidth,
     strokeColor,
+    marker,
+    Circles,
+    Ellipses,
+    Arrows,
+    texts,
+    images,
   } = useSelector((state) => state.board);
   const dash = useSelector((state) => state.toolBox.penDash);
-
   const { currentTool, markerColor } = useSelector((state) => state.toolBox);
   const dispatch = useDispatch();
   const isPaintRef = useRef(false);
   const stageRef = useRef(null);
   const currentShapeRef = useRef();
+
+  const addNewPage = () => {
+    const newPageId = uuid();
+    dispatch(addPage({ id: newPageId }));
+    dispatch(setActivePage(pages.length));
+  };
+
+  const switchPage = (index) => {
+    dispatch(setActivePage(index));
+  };
 
   const onStageMouseUp = useCallback(() => {
     isPaintRef.current = false;
@@ -49,6 +77,9 @@ const Konva = () => {
     const id = uuid();
     currentShapeRef.current = id;
 
+    const activePage = pages[activePageIndex];
+    if (!activePage) return;
+
     switch (currentTool) {
       case "rect": {
         dispatch(
@@ -56,6 +87,7 @@ const Konva = () => {
             id,
             height: 0.5,
             width: 0.5,
+            pageId: activePage.id,
             x,
             y,
             color: strokeColor,
@@ -69,6 +101,7 @@ const Konva = () => {
           addScribble({
             id,
             points: [x, y],
+            pageId: activePage.id,
             color: strokeColor,
             strokeWidth,
             dash: dash,
@@ -81,6 +114,7 @@ const Konva = () => {
           addMarker({
             id,
             points: [x, y],
+            pageId: activePage.id,
             color: markerColor,
             strokeWidth,
           })
@@ -94,6 +128,7 @@ const Konva = () => {
             x,
             y,
             radius: 1,
+            pageId: activePage.id,
             color: strokeColor,
             strokeWidth,
           })
@@ -108,6 +143,7 @@ const Konva = () => {
             y,
             radiusX: 1,
             radiusY: 1,
+            pageId: activePage.id,
             color: strokeColor,
             strokeWidth,
           })
@@ -121,17 +157,26 @@ const Konva = () => {
             x,
             y,
             points: [x, y, x, y], // Initial points
+            pageId: activePage.id,
             color: strokeColor,
             strokeWidth,
           })
         );
         break;
       }
-
       default:
         break;
     }
-  }, [currentTool, dispatch, strokeColor, strokeWidth, dash, markerColor]);
+  }, [
+    pages,
+    activePageIndex,
+    currentTool,
+    dispatch,
+    strokeColor,
+    strokeWidth,
+    dash,
+    markerColor,
+  ]);
 
   const onStageMouseMove = useCallback(() => {
     if (!isPaintRef.current) return;
@@ -141,13 +186,21 @@ const Konva = () => {
     const pos = stage.getPointerPosition();
     const x = pos?.x || 0;
     const y = pos?.y || 0;
+
+    const activePage = pages[activePageIndex];
+    if (!activePage) return;
+
     switch (currentTool) {
       case "rect": {
-        dispatch(updateRectangle({ id, height: y, width: x }));
+        dispatch(
+          updateRectangle({ id, pageId: activePage.id, height: y, width: x })
+        );
         break;
       }
       case "pen": {
-        const scribble = scribbles.find((s) => s.id === id);
+        const scribble = pages[activePageIndex].scribbles.find(
+          (s) => s.id === id
+        );
         if (scribble) {
           dispatch(
             updateScribble({
@@ -159,11 +212,12 @@ const Konva = () => {
         break;
       }
       case "marker": {
-        const mark = marker.find((m) => m.id === id);
+        const mark = pages[activePageIndex].marker.find((m) => m.id === id);
         if (mark) {
           dispatch(
             updateMarker({
               id,
+              pageId: activePage.id,
               points: [...(mark.points || []), x, y],
             })
           );
@@ -171,118 +225,212 @@ const Konva = () => {
         break;
       }
       case "circle": {
-        const circle = Circles.find((c) => c.id === id);
+        const circle = pages[activePageIndex].Circles.find((c) => c.id === id);
         if (circle) {
           const radius = Math.sqrt((x - circle.x) ** 2 + (y - circle.y) ** 2);
-          dispatch(updateCircle({ id, radius }));
+          dispatch(updateCircle({ id, pageId: activePage.id, radius }));
         }
         break;
       }
       case "ellipse": {
-        const ellipse = Ellipses.find((e) => e.id === id);
+        const ellipse = pages[activePageIndex].Ellipses.find(
+          (e) => e.id === id
+        );
         if (ellipse) {
           const radiusX = Math.abs(x - ellipse.x);
           const radiusY = Math.abs(y - ellipse.y);
-          dispatch(updateEllipse({ id, radiusX, radiusY }));
+          dispatch(
+            updateEllipse({ id, pageId: activePage.id, radiusX, radiusY })
+          );
         }
         break;
       }
       case "arrow": {
-        const arrow = Arrows.find((a) => a.id === id);
+        const arrow = pages[activePageIndex].Arrows.find((a) => a.id === id);
         if (arrow) {
           const newPoints = [...arrow.points];
-          newPoints[2] = x; 
-          newPoints[3] = y; 
-          dispatch(updateArrow({ id, points: newPoints }));
+          newPoints[2] = x;
+          newPoints[3] = y;
+          dispatch(
+            updateArrow({ id, pageId: activePage.id, points: newPoints })
+          );
         }
         break;
       }
       default:
         break;
     }
-  }, [currentTool, dispatch, scribbles, marker, Circles, Ellipses, Arrows]);
+  }, [pages, activePageIndex, currentTool, dispatch]);
+
+  // const handleDoubleClick = (id) => {
+  //   dispatch(startEditing({ id }));
+  // };
+
+  // const handleTextChange = (id, newText) => {
+  //   dispatch(updateText({ id, newText }));
+  // };
 
   return (
-    <div className="w-[80%] h-[96%] bg-gray-400/40 mr-4 my-4">
-      <Stage
-        width={1153}
-        height={662}
-        ref={stageRef}
-        onMouseUp={onStageMouseUp}
-        onMouseDown={onStageMouseDown}
-        onMouseMove={onStageMouseMove}
-        className="bg-white m-auto"
-      >
-        <Layer>
-          {rectangles.map((rectangle) => (
-            <Rect
-              key={rectangle.id}
-              x={rectangle.x}
-              y={rectangle.y}
-              height={rectangle.height}
-              width={rectangle.width}
-              stroke={rectangle.color}
-              strokeWidth={rectangle.strokeWidth}
-            />
+    <div className="w-[70%] h-full bg-gray-200">
+      <div className="flex justify-between items-center p-4 bg-gray-200">
+        <button
+          onClick={addNewPage}
+          className="bg-blue-500 text-white py-2 px-4 rounded"
+        >
+          New Page
+        </button>
+        <div className="flex gap-4">
+          {pages.map((page, index) => (
+            <button
+              key={page.id}
+              onClick={() => switchPage(index)}
+              className={`py-2 px-4 rounded ${
+                activePageIndex === index
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-300"
+              }`}
+            >
+              Page {index + 1}
+            </button>
           ))}
-          {scribbles.map((scribble) => (
-            <Line
-              key={scribble.id}
-              points={scribble.points || []}
-              stroke={scribble.color}
-              strokeWidth={scribble.strokeWidth}
-              tension={0.5}
-              lineCap="round"
-              lineJoin="round"
-              dash={scribble.dash}
-            />
+        </div>
+      </div>
+      <div className="w-70%">
+        <Stage
+          width={1000}
+          height={610}
+          ref={stageRef}
+          onMouseUp={onStageMouseUp}
+          onMouseDown={onStageMouseDown}
+          onMouseMove={onStageMouseMove}
+          className="bg-white"
+        >
+          <Layer>
+            {pages[activePageIndex]?.rectangles.map((rectangle) => (
+              <Rect
+                key={rectangle.id}
+                x={rectangle.x}
+                y={rectangle.y}
+                height={rectangle.height}
+                width={rectangle.width}
+                stroke={rectangle.color}
+                strokeWidth={rectangle.strokeWidth}
+              />
+            ))}
+            {pages[activePageIndex]?.scribbles.map((scribble) => (
+              <Line
+                key={scribble.id}
+                points={scribble.points || []}
+                stroke={scribble.color}
+                strokeWidth={scribble.strokeWidth}
+                tension={0.5}
+                lineCap="round"
+                lineJoin="round"
+                dash={scribble.dash}
+              />
+            ))}
+            {pages[activePageIndex]?.marker.map((mark) => (
+              <Line
+                key={mark.id}
+                points={mark.points || []}
+                stroke={mark.color}
+                strokeWidth={mark.strokeWidth}
+                tension={0.5}
+                lineCap="round"
+                lineJoin="round"
+              />
+            ))}
+            {pages[activePageIndex]?.Circles.map((circle) => (
+              <Circle
+                key={circle.id}
+                x={circle.x}
+                y={circle.y}
+                radius={circle.radius}
+                stroke={circle.color}
+                strokeWidth={circle.strokeWidth}
+              />
+            ))}
+            {pages[activePageIndex]?.Ellipses.map((ellipse) => (
+              <Ellipse
+                key={ellipse.id}
+                x={ellipse.x}
+                y={ellipse.y}
+                radiusX={ellipse.radiusX}
+                radiusY={ellipse.radiusY}
+                stroke={ellipse.color}
+                strokeWidth={ellipse.strokeWidth}
+                closed
+              />
+            ))}
+            {pages[activePageIndex]?.Arrows.map((arrow) => (
+              <Arrow
+                key={arrow.id}
+                points={arrow.points}
+                pointerLength={10}
+                pointerWidth={10}
+                fill={arrow.color}
+                stroke={arrow.color}
+                strokeWidth={arrow.strokeWidth}
+              />
+            ))}
+            {/* {texts.map((text) => (
+            <>
+              <Text
+                key={text.id}
+                x={text.x}
+                y={text.y}
+                text={text.text}
+                fontSize={text.fontSize}
+                fontFamily={text.fontFamily}
+                fill={text.fill}
+                draggable
+                onDblClick={() => handleDoubleClick(text.id)}
+              />
+              {text.isEditing && (
+                <textarea
+                  style={{
+                    position: "absolute",
+                    top: text.y,
+                    left: text.x,
+                    fontSize: `${text.fontSize}px`,
+                    fontFamily: text.fontFamily,
+                    color: text.fill,
+                  }}
+                  value={text.text}
+                  onChange={(e) => handleTextChange(text.id, e.target.value)}
+                  onBlur={() => dispatch(setEditingOff())}
+                  autoFocus
+                />
+              )}
+            </>
           ))}
-          {marker.map((mark) => (
-            <Line
-              key={mark.id}
-              points={mark.points || []}
-              stroke={mark.color}
-              strokeWidth={mark.strokeWidth}
-              tension={0.5}
-              lineCap="round"
-              lineJoin="round"
+          {images.map((img) => (
+            <Image
+              key={img.id}
+              x={img.x}
+              y={img.y}
+              width={img.width}
+              height={img.height}
+              image={(() => {
+                const imageObj = new window.Image();
+                imageObj.src = img.src;
+                return imageObj;
+              })()}
+              draggable
+              onDragEnd={(e) => {
+                dispatch(
+                  updateImage({
+                    id: img.id,
+                    x: e.target.x(),
+                    y: e.target.y(),
+                  })
+                );
+              }}
             />
-          ))}
-          {Circles.map((circle) => (
-            <Circle
-              key={circle.id}
-              x={circle.x}
-              y={circle.y}
-              radius={circle.radius}
-              stroke={circle.color}
-              strokeWidth={circle.strokeWidth}
-            />
-          ))}
-          {Ellipses.map((ellipse) => (
-            <Ellipse
-              key={ellipse.id}
-              x={ellipse.x}
-              y={ellipse.y}
-              radiusX={ellipse.radiusX}
-              radiusY={ellipse.radiusY}
-              stroke={ellipse.color}
-              strokeWidth={ellipse.strokeWidth}
-              closed
-            />
-          ))}
-          {Arrows.map((arrow) => (
-            <Arrow
-              key={arrow.id}
-              points={arrow.points}
-              pointerLength={10}
-              pointerWidth={10}
-              fill={arrow.color}
-              stroke={arrow.color}
-              strokeWidth={arrow.strokeWidth}
-            />
-          ))}
-        </Layer>
-      </Stage>
+          ))} */}
+          </Layer>
+        </Stage>
+      </div>
     </div>
   );
 };

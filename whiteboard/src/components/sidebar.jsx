@@ -13,13 +13,19 @@ import { changeTool } from "../store/toolBoxSlice";
 import ToolButton from "./utils/ToolButton";
 import { PiRectangle } from "react-icons/pi";
 import { FaRegCircle } from "react-icons/fa6";
-import { setStrokeColor, setStrokeWidth } from "../store/boardSlice";
+import {
+  setStrokeColor,
+  setStrokeWidth,
+  undoLastShape,
+} from "../store/boardSlice";
 import {
   TfiLayoutLineSolid,
   TfiLineDashed,
   TfiLineDotted,
 } from "react-icons/tfi";
+import { addText, addImage } from "../store/boardSlice";
 import { ColorPicker } from "antd";
+import { v4 as uuid } from "uuid";
 
 const Sidebar = () => {
   const { tabs } = useSelector((state) => state.enable);
@@ -69,20 +75,63 @@ const Sidebar = () => {
       },
     ],
     shapes: [
-      { value: "rect", label: PiRectangle,width:4 },
-      { value: "circle", label: FaRegCircle,width:4 },
-      { value: "ellipse", label: TbOvalVertical,width:4 },
+      { value: "rect", label: PiRectangle, width: 4 },
+      { value: "circle", label: FaRegCircle, width: 4 },
+      { value: "ellipse", label: TbOvalVertical, width: 4 },
     ],
     text: [
-      { value: "Straight", label: TfiLayoutLineSolid, straight: true,width:4 },
-      { value: "Curve", label: TfiLineDashed, straight: false,width:4 },
+      {
+        value: "Straight",
+        label: TfiLayoutLineSolid,
+        straight: true,
+        width: 4,
+      },
+      { value: "Curve", label: TfiLineDashed, straight: false, width: 4 },
     ],
   };
 
   const handleToolChange = (value) => {
     dispatch(changeTool(`${value}`));
   };
-
+  const handleAddText = () => {
+    dispatch(changeTool("text"));
+    const id = uuid();
+    const newText = {
+      id: id,
+      x: 100,
+      y: 100,
+      text: "Click to edit",
+      fontSize: 20,
+      fontFamily: "Calibri",
+      fill: "#000000",
+      isEditing: false,
+    };
+    dispatch(addText(newText));
+  };
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imgElement = new Image();
+        imgElement.src = event.target.result;
+        imgElement.onload = () => {
+          const id = uuid();
+          dispatch(
+            addImage({
+              id,
+              x: 100, // Default position
+              y: 100, // Default position
+              width: imgElement.width,
+              height: imgElement.height,
+              image: imgElement,
+            })
+          );
+        };
+      };
+      reader.readAsDataURL(file);
+    }
+  };
   return (
     <div className="flex w-full h-[80%] items-center rounded bg-white flex-col gap-1">
       <button
@@ -140,15 +189,14 @@ const Sidebar = () => {
         onChange={handleToolChange}
         disabled={!tabs}
       />
-      <ToolButton
-        type="text"
-        icon={CiText}
+      <button
         value="text"
-        options={dropdownOptions.text}
-        selectedValue={selectedValues.text}
-        onChange={handleToolChange}
+        onClick={handleAddText}
         disabled={!tabs}
-      />
+        className="bg-white text-black h-[1.4em] text-[1.2em] m-1"
+      >
+        <CiText />
+      </button>
       <ColorPicker value={color} onChange={setColor}>
         <button
           type="primary"
@@ -157,20 +205,57 @@ const Sidebar = () => {
           <IoColorFillOutline style={{ color: bgColor }} />
         </button>
       </ColorPicker>
-      <ToolButton
+      <button
+        onClick={() => document.getElementById("fileInput").click()}
+        disabled={!tabs}
+        className="bg-white text-black h-[1.4em] text-[1.2em] m-1"
+      >
+        <LuImagePlus />
+        <input
+          id="fileInput"
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (event) => {
+                const id = uuid();
+                // Store the base64 string directly
+                dispatch(
+                  addImage({
+                    id,
+                    x: 100, // Default position
+                    y: 100, // Default position
+                    width: 300, // Default width
+                    height: 300, // Default height
+                    src: event.target.result, // Store base64 string instead of Image object
+                  })
+                );
+              };
+              reader.readAsDataURL(file);
+            }
+          }}
+        />
+      </button>
+      {/* <ToolButton
         type="image"
         icon={LuImagePlus}
         value="image"
         onChange={handleToolChange}
         disabled={!tabs}
-      />
-      <ToolButton
-        type="undo"
-        icon={LuUndo2}
+      /> */}
+      <button
         value="undo"
-        onChange={handleToolChange}
+        onClick={() => {
+          dispatch(undoLastShape());
+        }}
         disabled={!tabs}
-      />
+        className="bg-white text-black h-[1.4em] text-[1.2em] m-1"
+      >
+        <LuUndo2 />
+      </button>
     </div>
   );
 };
