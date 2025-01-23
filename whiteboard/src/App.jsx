@@ -9,7 +9,7 @@ import RouteWatcher from "./routes/trackRoute";
 function App() {
   return (
     <Router>
-      <RouteWatcher>
+      {/* <RouteWatcher> */}
         <Routes>
           <Route path="/" element={<Landing />}>
             <Route index element={<Next />} />
@@ -21,17 +21,10 @@ function App() {
                 </PrivateRoute>
               }
             />
-            <Route
-              path="/blankCanva"
-              element={
-                <PrivateRoute>
-                  <Konvo />
-                </PrivateRoute>
-              }
-            />
+            <Route path="/whiteboard/:roomKey" element={<Konvo />} />
           </Route>
         </Routes>
-      </RouteWatcher>
+      {/* </RouteWatcher> */}
     </Router>
   );
 }

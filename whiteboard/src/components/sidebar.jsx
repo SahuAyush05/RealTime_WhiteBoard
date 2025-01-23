@@ -23,7 +23,7 @@ import {
   TfiLineDashed,
   TfiLineDotted,
 } from "react-icons/tfi";
-import { addText, addImage } from "../store/boardSlice";
+// import { addText, addImage } from "../store/boardSlice";
 import { ColorPicker } from "antd";
 import { v4 as uuid } from "uuid";
 
@@ -93,45 +93,45 @@ const Sidebar = () => {
   const handleToolChange = (value) => {
     dispatch(changeTool(`${value}`));
   };
-  const handleAddText = () => {
-    dispatch(changeTool("text"));
-    const id = uuid();
-    const newText = {
-      id: id,
-      x: 100,
-      y: 100,
-      text: "Click to edit",
-      fontSize: 20,
-      fontFamily: "Calibri",
-      fill: "#000000",
-      isEditing: false,
-    };
-    dispatch(addText(newText));
-  };
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const imgElement = new Image();
-        imgElement.src = event.target.result;
-        imgElement.onload = () => {
-          const id = uuid();
-          dispatch(
-            addImage({
-              id,
-              x: 100, // Default position
-              y: 100, // Default position
-              width: imgElement.width,
-              height: imgElement.height,
-              image: imgElement,
-            })
-          );
-        };
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  // const handleAddText = () => {
+  //   dispatch(changeTool("text"));
+  //   const id = uuid();
+  //   const newText = {
+  //     id: id,
+  //     x: 100,
+  //     y: 100,
+  //     text: "Click to edit",
+  //     fontSize: 20,
+  //     fontFamily: "Calibri",
+  //     fill: "#000000",
+  //     isEditing: false,
+  //   };
+  //   dispatch(addText(newText));
+  // };
+  // const handleImageUpload = (e) => {
+  //   const file = e.target.files[0];
+  //   if (file) {
+  //     const reader = new FileReader();
+  //     reader.onload = (event) => {
+  //       const imgElement = new Image();
+  //       imgElement.src = event.target.result;
+  //       imgElement.onload = () => {
+  //         const id = uuid();
+  //         dispatch(
+  //           addImage({
+  //             id,
+  //             x: 100, // Default position
+  //             y: 100, // Default position
+  //             width: imgElement.width,
+  //             height: imgElement.height,
+  //             image: imgElement,
+  //           })
+  //         );
+  //       };
+  //     };
+  //     reader.readAsDataURL(file);
+  //   }
+  // };
   return (
     <div className="flex w-full h-[80%] items-center rounded bg-white flex-col gap-1">
       <button
@@ -191,7 +191,7 @@ const Sidebar = () => {
       />
       <button
         value="text"
-        onClick={handleAddText}
+        // onClick={handleAddText}
         disabled={!tabs}
         className="bg-white text-black h-[1.4em] text-[1.2em] m-1"
       >
@@ -211,7 +211,7 @@ const Sidebar = () => {
         className="bg-white text-black h-[1.4em] text-[1.2em] m-1"
       >
         <LuImagePlus />
-        <input
+        {/* <input
           id="fileInput"
           type="file"
           accept="image/*"
@@ -237,7 +237,7 @@ const Sidebar = () => {
               reader.readAsDataURL(file);
             }
           }}
-        />
+        /> */}
       </button>
       {/* <ToolButton
         type="image"

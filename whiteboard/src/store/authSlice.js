@@ -2,10 +2,8 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import {jwtDecode} from "jwt-decode";
 
-// Base API URL
 const API_URL = "http://localhost:5000/api/auth";
 
-// Async Thunks for API calls
 export const signUp = createAsyncThunk(
   "auth/signUp",
   async (formData, { rejectWithValue }) => {
@@ -40,13 +38,12 @@ export const signIn = createAsyncThunk(
   }
 );
 
-// Auth Slice
 const authSlice = createSlice({
   name: "auth",
   initialState: {
     token: null,
     user: [],
-    status: "idle", // idle, loading, succeeded, failed
+    status: "idle",
     error: null,
     isAuthenticated:false,
   },

@@ -8,7 +8,7 @@ const RouteWatcher = ({ children }) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (location.pathname !== "/blankCanva") {
+    if (location.pathname !== "/whiteboard/:roomkey") {
       dispatch(enableCanva(false));
     }
   }, [location, dispatch]);

@@ -7,6 +7,7 @@ const enableSlice = createSlice({
     },
     reducers: {
       enableCanva: (state, action) => {
+        console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$$$" ,state.tabs)
         state.tabs = action.payload; 
       },
     },

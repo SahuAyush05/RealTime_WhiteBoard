@@ -5,15 +5,14 @@ const initialState = {
   pages: [
     {
       id: uuid(),
-      rectangles: [],
-      scribbles: [],
-      marker: [],
+      Rectangles: [],
+      Scribbles: [],
+      Markers: [],
       Circles: [],
       Ellipses: [],
       Arrows: [],
-      texts: [],
-      images: [],
-      shapes: [],
+      Lines: [],
+      Shapes: [],
     },
   ],
   activePageIndex: 0,
@@ -25,19 +24,16 @@ const boardSlice = createSlice({
   name: "board",
   initialState,
   reducers: {
+    initializeBoard(state, action) {
+      const { pages } = action.payload;
+      console.log(action.payload);
+      state.pages = pages;
+      state.activePageIndex = 0;
+      state.strokeWidth = 4;
+      state.strokeColor = "#000000";
+    },
     addPage(state, action) {
-      state.pages.push({
-        id: action.payload.id,
-        rectangles: [],
-        scribbles: [],
-        marker: [],
-        Circles: [],
-        Ellipses: [],
-        Arrows: [],
-        texts: [],
-        images: [],
-        shapes: [],
-      });
+      state.pages.push(action.payload);
     },
     setActivePage(state, action) {
       state.activePageIndex = action.payload;
@@ -50,12 +46,14 @@ const boardSlice = createSlice({
     },
     addRectangle(state, action) {
       const page = state.pages[state.activePageIndex];
-      page.rectangles.push(action.payload);
-      page.shapes.push({ id: action.payload.id, type: "rect" });
+      page.Rectangles.push(action.payload);
+      page.Shapes.push({ id: action.payload.id, type: "rect" });
     },
     updateRectangle(state, action) {
-      const { id, height, width} = action.payload;
-      const rectangle = state.pages[state.activePageIndex].rectangles.find((rect) => rect.id === id);
+      const { id, height, width } = action.payload;
+      const rectangle = state.pages[state.activePageIndex].Rectangles.find(
+        (rect) => rect.id === id
+      );
       if (rectangle) {
         rectangle.height = height;
         rectangle.width = width;
@@ -63,24 +61,28 @@ const boardSlice = createSlice({
     },
     addScribble(state, action) {
       const page = state.pages[state.activePageIndex];
-      page.scribbles.push(action.payload);
-      page.shapes.push({ id: action.payload.id, type: "scribble" });
+      page.Scribbles.push(action.payload);
+      page.Shapes.push({ id: action.payload.id, type: "scribble" });
     },
     updateScribble(state, action) {
       const { id, points } = action.payload;
-      const scribble = state.pages[state.activePageIndex].scribbles.find((scrib) => scrib.id === id);
+      const scribble = state.pages[state.activePageIndex].Scribbles.find(
+        (scrib) => scrib.id === id
+      );
       if (scribble) {
         scribble.points = points;
       }
     },
     addMarker(state, action) {
       const page = state.pages[state.activePageIndex];
-      page.marker.push(action.payload);
-      page.shapes.push({ id: action.payload.id, type: "marker" });
+      page.Markers.push(action.payload);
+      page.Shapes.push({ id: action.payload.id, type: "marker" });
     },
     updateMarker(state, action) {
       const { id, points } = action.payload;
-      const marker = state.pages[state.activePageIndex].marker.find((mark) => mark.id === id);
+      const marker = state.pages[state.activePageIndex].Markers.find(
+        (mark) => mark.id === id
+      );
       if (marker) {
         marker.points = points;
       }
@@ -88,11 +90,13 @@ const boardSlice = createSlice({
     addCircle(state, action) {
       const page = state.pages[state.activePageIndex];
       page.Circles.push(action.payload);
-      page.shapes.push({ id: action.payload.id, type: "circle" });
+      page.Shapes.push({ id: action.payload.id, type: "circle" });
     },
     updateCircle(state, action) {
       const { id, radius } = action.payload;
-      const circle = state.pages[state.activePageIndex].Circles.find((c) => c.id === id);
+      const circle = state.pages[state.activePageIndex].Circles.find(
+        (c) => c.id === id
+      );
       if (circle) {
         circle.radius = radius;
       }
@@ -100,11 +104,13 @@ const boardSlice = createSlice({
     addEllipse(state, action) {
       const page = state.pages[state.activePageIndex];
       page.Ellipses.push(action.payload);
-      page.shapes.push({ id: action.payload.id, type: "ellipse" });
+      page.Shapes.push({ id: action.payload.id, type: "ellipse" });
     },
     updateEllipse(state, action) {
-      const { id, radiusX, radiusY} = action.payload;
-      const ellipse = state.pages[state.activePageIndex].Ellipses.find((t) => t.id === id);
+      const { id, radiusX, radiusY } = action.payload;
+      const ellipse = state.pages[state.activePageIndex].Ellipses.find(
+        (t) => t.id === id
+      );
       if (ellipse) {
         ellipse.radiusX = radiusX;
         ellipse.radiusY = radiusY;
@@ -113,51 +119,55 @@ const boardSlice = createSlice({
     addArrow(state, action) {
       const page = state.pages[state.activePageIndex];
       page.Arrows.push(action.payload);
-      page.shapes.push({ id: action.payload.id, type: "arrow" });
+      page.Shapes.push({ id: action.payload.id, type: "arrow" });
     },
     updateArrow(state, action) {
-      const { id, points} = action.payload;
-      const arrow = state.pages[state.activePageIndex].Arrows.find((a) => a.id === id);
+      const { id, points } = action.payload;
+      const arrow = state.pages[state.activePageIndex].Arrows.find(
+        (a) => a.id === id
+      );
       if (arrow) {
         arrow.points = points;
       }
     },
-    addText(state, action) {
-      const page = state.pages[state.activePageIndex];
-      page.texts.push(action.payload);
-      page.shapes.push({ id: action.payload.id, type: "text" });
-    },
-    updateText(state, action) {
-      const { id, newText} = action.payload;
-      const textItem = state.pages[state.activePageIndex].texts.find((text) => text.id === id);
-      if (textItem) {
-        textItem.text = newText;
-        textItem.isEditing = false;
-      }
-    },
-    startEditing(state, action) {
-      const { id, index } = action.payload;
-      state.pages[index].texts.forEach((text) => {
-        text.isEditing = text.id === id;
-      });
-    },
-    setEditingOff(state) {
-      state.pages.forEach((page) =>
-        page.texts.forEach((text) => (text.isEditing = false))
-      );
-    },
-    addImage(state, action) {
-      const page = state.pages[state.activePageIndex];
-      page.images.push(action.payload);
-    },
-    updateImage(state, action) {
-      const { id, index, ...updateData } = action.payload;
-      const page = state.pages[index];
-      const imageIndex = page.images.findIndex((img) => img.id === id);
-      if (imageIndex !== -1) {
-        page.images[imageIndex] = { ...page.images[imageIndex], ...updateData };
-      }
-    },
+    // addText(state, action) {
+    //   const page = state.pages[state.activePageIndex];
+    //   page.texts.push(action.payload);
+    //   page.shapes.push({ id: action.payload.id, type: "text" });
+    // },
+    // updateText(state, action) {
+    //   const { id, newText } = action.payload;
+    //   const textItem = state.pages[state.activePageIndex].texts.find(
+    //     (text) => text.id === id
+    //   );
+    //   if (textItem) {
+    //     textItem.text = newText;
+    //     textItem.isEditing = false;
+    //   }
+    // },
+    // startEditing(state, action) {
+    //   const { id, index } = action.payload;
+    //   state.pages[index].texts.forEach((text) => {
+    //     text.isEditing = text.id === id;
+    //   });
+    // },
+    // setEditingOff(state) {
+    //   state.pages.forEach((page) =>
+    //     page.texts.forEach((text) => (text.isEditing = false))
+    //   );
+    // },
+    // addImage(state, action) {
+    //   const page = state.pages[state.activePageIndex];
+    //   page.images.push(action.payload);
+    // },
+    // updateImage(state, action) {
+    //   const { id, index, ...updateData } = action.payload;
+    //   const page = state.pages[index];
+    //   const imageIndex = page.images.findIndex((img) => img.id === id);
+    //   if (imageIndex !== -1) {
+    //     page.images[imageIndex] = { ...page.images[imageIndex], ...updateData };
+    //   }
+    // },
     undoLastShape(state) {
       const page = state.pages[state.activePageIndex];
       const lastShape = page.shapes.pop();
@@ -187,14 +197,15 @@ export const {
   updateEllipse,
   addArrow,
   updateArrow,
-  addText,
-  updateText,
-  startEditing,
-  setEditingOff,
-  addImage,
-  updateImage,
+  // addText,
+  // updateText,
+  // startEditing,
+  // setEditingOff,
+  // addImage,
+  // updateImage,
   addPage,
-  setActivePage
+  setActivePage,
+  initializeBoard,
 } = boardSlice.actions;
 
 export default boardSlice.reducer;

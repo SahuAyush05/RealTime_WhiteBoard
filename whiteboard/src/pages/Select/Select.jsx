@@ -1,16 +1,73 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { FaArrowRight } from "react-icons/fa";
+import { connectSocket, joinRoom } from "../../utils/socket";
 import { LuLayoutDashboard } from "react-icons/lu";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { enableCanva } from "../../store/enable";
+import { createProject,joinProject } from "../../store/projectSlice";
+import { initializeBoard } from "../../store/boardSlice";
 const Select = () => {
-
-  const tabs=useSelector((state)=>state.enable.tabs);
-  const dispatch=useDispatch();
-  const handleBlankCanva=()=>{
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
+  // const { project } = useSelector((state) => state.project);
+  const handleBlankCanva = async () => {
     dispatch(enableCanva(true));
-  }
+  
+    const projectData = {
+      userId: user?.id,
+      name: "New Project",
+    };
+  
+    try {
+      const action = await dispatch(createProject(projectData));
+  
+      if (createProject.fulfilled.match(action)) {
+        const projectPayload = action.payload;
+        dispatch(initializeBoard(projectPayload));
+  
+        if (projectPayload.roomKey) {
+          const socket = connectSocket("http://localhost:5000");
+          joinRoom(projectPayload.roomKey, user.id);
+          navigate(`/whiteboard/${projectPayload.roomKey}`);
+        }
+      } else {
+        console.error("Project creation failed:", action.error);
+      }
+    } catch (error) {
+      console.error("Error creating project:", error.message || error);
+    }
+  };
+  const handleJoinSession = async () => {
+    dispatch(enableCanva(true));
+
+    if (!sessionId) {
+      console.error("Session ID is required to join a session.");
+      return;
+    }
+
+    try {
+      const action = await dispatch(joinProject(sessionId));
+
+      if (joinProject.fulfilled.match(action)) {
+        const projectPayload = action.payload;
+        //console.log(projectPayload.project);
+        dispatch(initializeBoard(projectPayload.project));
+        if (projectPayload.project.roomKey) {
+          
+          const socket = connectSocket("http://localhost:5000");
+          joinRoom(projectPayload.project.roomKey, user.id);
+          navigate(`/whiteboard/${projectPayload.project.roomKey}`);
+        }
+      } else {
+        console.error("Failed to join session:", action.error.message || action.error);
+      }
+    } catch (error) {
+      console.error("Error joining session:", error.message || error);
+    }
+  };
+
   const [sessionId, setSessionId] = useState();
   return (
     <div className="w-[600px] h-[300px] bg-white rounded-xl shadow-lg flex flex-row z-[10]">
@@ -40,6 +97,7 @@ const Select = () => {
             <button
               type="submit"
               className="bg-gray-300 h-[2.8em] w-[4em] rounded hover:bg-[#4959AC]"
+              onClick={handleJoinSession}
             >
               <FaArrowRight className="m-auto text-white" />
             </button>
@@ -47,7 +105,7 @@ const Select = () => {
         </div>
       </div>
       <div className="w-[50%] my-4 mr-4 flex flex-col justify-center gap-4">
-        <Link to="/blankCanva" className="h-[34%]" onClick={handleBlankCanva}>
+        <Link className="h-[34%]" onClick={handleBlankCanva}>
           <div className=" h-full  rounded-xl bg-[#1ABDB1] flex flex-col p-4 justify-center bg-opacity-70">
             <div className="w-[50%] flex-row text-[1.2em] leading-none font-medium ">
               <p>Blank</p>

@@ -1,17 +1,8 @@
 /* eslint-disable no-unused-vars */
-import { useRef, useCallback } from "react";
-import {
-  Layer,
-  Rect,
-  Line,
-  Stage,
-  Circle,
-  Ellipse,
-  Arrow,
-  Text,
-  Image,
-} from "react-konva";
+import { useRef, useCallback, useEffect } from "react";
+import { Layer, Rect, Line, Stage, Circle, Ellipse, Arrow } from "react-konva";
 import { useDispatch, useSelector } from "react-redux";
+import { getSocket } from "../../utils/socket";
 import {
   addRectangle,
   updateRectangle,
@@ -25,28 +16,17 @@ import {
   updateEllipse,
   addArrow,
   updateArrow,
-  updateText,
-  startEditing,
-  setEditingOff,
-  updateImage,
-  addPage,
   setActivePage,
+  addPage,
 } from "../../store/boardSlice";
 import { v4 as uuid } from "uuid";
+import { emitAddPage } from "../../utils/socket";
 
 const Konva = () => {
-  const {
-    pages,
-    activePageIndex,
-    strokeWidth,
-    strokeColor,
-    marker,
-    Circles,
-    Ellipses,
-    Arrows,
-    texts,
-    images,
-  } = useSelector((state) => state.board);
+  const { pages, activePageIndex, strokeWidth, strokeColor } = useSelector(
+    (state) => state.board
+  );
+  const { project } = useSelector((state) => state.project);
   const dash = useSelector((state) => state.toolBox.penDash);
   const { currentTool, markerColor } = useSelector((state) => state.toolBox);
   const dispatch = useDispatch();
@@ -55,10 +35,24 @@ const Konva = () => {
   const currentShapeRef = useRef();
 
   const addNewPage = () => {
-    const newPageId = uuid();
-    dispatch(addPage({ id: newPageId }));
-    dispatch(setActivePage(pages.length));
+    //console.log(project.projectId,);
+    emitAddPage(project.roomKey, project._id);
   };
+  useEffect(() => {
+    const socket = getSocket();
+    const handlePageAdded = ({ newPage, pages }) => {
+      console.log("PageAdded")
+      dispatch(addPage(newPage));
+      dispatch(setActivePage(pages.length));
+    };
+    if (socket) {
+      socket.on("pageAdded", handlePageAdded);
+    }
+    return () => {
+      if(socket)
+      socket.off("pageAdded", handlePageAdded);
+    };
+  }, [dispatch]);
 
   const switchPage = (index) => {
     dispatch(setActivePage(index));
@@ -92,6 +86,7 @@ const Konva = () => {
             y,
             color: strokeColor,
             strokeWidth,
+            type: "rectangle",
           })
         );
         break;
@@ -105,6 +100,7 @@ const Konva = () => {
             color: strokeColor,
             strokeWidth,
             dash: dash,
+            type: "pen",
           })
         );
         break;
@@ -117,6 +113,7 @@ const Konva = () => {
             pageId: activePage.id,
             color: markerColor,
             strokeWidth,
+            type: "marker",
           })
         );
         break;
@@ -131,6 +128,7 @@ const Konva = () => {
             pageId: activePage.id,
             color: strokeColor,
             strokeWidth,
+            type: "circle",
           })
         );
         break;
@@ -146,6 +144,7 @@ const Konva = () => {
             pageId: activePage.id,
             color: strokeColor,
             strokeWidth,
+            type: "ellipse",
           })
         );
         break;
@@ -160,6 +159,7 @@ const Konva = () => {
             pageId: activePage.id,
             color: strokeColor,
             strokeWidth,
+            type: "arrow",
           })
         );
         break;
@@ -198,7 +198,7 @@ const Konva = () => {
         break;
       }
       case "pen": {
-        const scribble = pages[activePageIndex].scribbles.find(
+        const scribble = pages[activePageIndex].Scribbles.find(
           (s) => s.id === id
         );
         if (scribble) {
@@ -212,7 +212,7 @@ const Konva = () => {
         break;
       }
       case "marker": {
-        const mark = pages[activePageIndex].marker.find((m) => m.id === id);
+        const mark = pages[activePageIndex].Markers.find((m) => m.id === id);
         if (mark) {
           dispatch(
             updateMarker({
@@ -306,7 +306,7 @@ const Konva = () => {
           className="bg-white"
         >
           <Layer>
-            {pages[activePageIndex]?.rectangles.map((rectangle) => (
+            {pages[activePageIndex]?.Rectangles.map((rectangle) => (
               <Rect
                 key={rectangle.id}
                 x={rectangle.x}
@@ -317,7 +317,7 @@ const Konva = () => {
                 strokeWidth={rectangle.strokeWidth}
               />
             ))}
-            {pages[activePageIndex]?.scribbles.map((scribble) => (
+            {pages[activePageIndex]?.Scribbles.map((scribble) => (
               <Line
                 key={scribble.id}
                 points={scribble.points || []}
@@ -329,7 +329,7 @@ const Konva = () => {
                 dash={scribble.dash}
               />
             ))}
-            {pages[activePageIndex]?.marker.map((mark) => (
+            {pages[activePageIndex]?.Markers.map((mark) => (
               <Line
                 key={mark.id}
                 points={mark.points || []}
