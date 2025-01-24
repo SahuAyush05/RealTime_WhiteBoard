@@ -1,20 +1,20 @@
 const mongoose = require("mongoose");
 
 const shapeSchema = new mongoose.Schema({
+  data: {
+    x: Number,
+    y: Number,
+    width: Number,
+    height: Number,
+    radius: Number,
+    color: String,
+    strokeWidth: Number,
+    points: [Number],
+    radiusX: Number,
+    radiusY: Number,
+    Dash: [Number],
+  },
   id: String,
-  type: String,
-  x: Number,
-  y: Number,
-  width: Number,
-  height: Number,
-  radius: Number,
-  color: String,
-  strokeWidth: Number,
-  points: [Number],
-  pageId: Number,
-  radiusX: Number,
-  radiusY: Number,
-  Dash: [Number],
 });
 
 const pageSchema = new mongoose.Schema({
@@ -29,6 +29,7 @@ const pageSchema = new mongoose.Schema({
   Shapes: [{ id: Number, type: String }],
   createdAt: { type: Date, default: Date.now },
 });
+
 
 const projectSchema = new mongoose.Schema(
   {

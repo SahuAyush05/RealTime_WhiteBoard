@@ -2,7 +2,7 @@
 import { useRef, useCallback, useEffect } from "react";
 import { Layer, Rect, Line, Stage, Circle, Ellipse, Arrow } from "react-konva";
 import { useDispatch, useSelector } from "react-redux";
-import { getSocket } from "../../utils/socket";
+import { addShape, getSocket, updateShape } from "../../utils/socket";
 import {
   addRectangle,
   updateRectangle,
@@ -35,21 +35,53 @@ const Konva = () => {
   const currentShapeRef = useRef();
 
   const addNewPage = () => {
-    //console.log(project.projectId,);
     emitAddPage(project.roomKey, project._id);
   };
   useEffect(() => {
     const socket = getSocket();
     const handlePageAdded = ({ newPage, pages }) => {
-      console.log("PageAdded")
+      console.log("PageAdded");
       dispatch(addPage(newPage));
       dispatch(setActivePage(pages.length));
     };
+    
+    const handleAddShape = ({ data, id, shape }) => {
+      console.log(data, id, shape);
+      switch (shape) {
+        case "Rectangle": {
+          dispatch(
+            addRectangle({
+              data,
+              id,
+            })
+          );
+          break;
+        }
+        default:
+          break;
+      }
+    };
+    const handleUpdateShape = ({
+      updatedData,
+      shape,
+      rectangleId,
+      pageIndex,
+    }) => {
+      switch (shape) {
+        case "Rectangle": {
+          dispatch(updateRectangle({ updatedData, rectangleId, pageIndex }));
+          break;
+        }
+        default:
+          break;
+      }
+    };
     if (socket) {
       socket.on("pageAdded", handlePageAdded);
+      socket.on("addShapeRes", handleAddShape);
+      socket.on("updateShapeRes", handleUpdateShape);
     }
     return () => {
-      if(socket)
       socket.off("pageAdded", handlePageAdded);
     };
   }, [dispatch]);
@@ -61,6 +93,7 @@ const Konva = () => {
   const onStageMouseUp = useCallback(() => {
     isPaintRef.current = false;
   }, []);
+  
 
   const onStageMouseDown = useCallback(() => {
     isPaintRef.current = true;
@@ -76,19 +109,25 @@ const Konva = () => {
 
     switch (currentTool) {
       case "rect": {
+        const data = {
+          height: 0.5,
+          width: 0.5,
+          x,
+          y,
+          color: strokeColor,
+          strokeWidth,
+        };
+        const shape = "Rectangle";
+        const pageIdx = activePageIndex;
+        console.log(project._id, pageIdx);
         dispatch(
           addRectangle({
             id,
-            height: 0.5,
-            width: 0.5,
             pageId: activePage.id,
-            x,
-            y,
-            color: strokeColor,
-            strokeWidth,
-            type: "rectangle",
+            data,
           })
         );
+        addShape(project.roomKey, project._id, shape, data, id, pageIdx)
         break;
       }
       case "pen": {
@@ -167,16 +206,7 @@ const Konva = () => {
       default:
         break;
     }
-  }, [
-    pages,
-    activePageIndex,
-    currentTool,
-    dispatch,
-    strokeColor,
-    strokeWidth,
-    dash,
-    markerColor,
-  ]);
+  }, [pages, activePageIndex, currentTool, strokeColor, strokeWidth, project._id, project.roomKey, dispatch, dash, markerColor]);
 
   const onStageMouseMove = useCallback(() => {
     if (!isPaintRef.current) return;
@@ -192,9 +222,21 @@ const Konva = () => {
 
     switch (currentTool) {
       case "rect": {
-        dispatch(
-          updateRectangle({ id, pageId: activePage.id, height: y, width: x })
-        );
+        const updatedData = {
+          height: y,
+          width: x,
+        };
+        const rectangleId= id
+        const pageIndex= activePageIndex
+        updateShape({
+          roomKey: project.roomKey,
+          projectId: project._id,
+          rectangleId: id,
+          updatedData,
+          pageIndex: activePageIndex,
+          shape: "Rectangle",
+        });
+        dispatch(updateRectangle( {rectangleId,updatedData, pageIndex}) )
         break;
       }
       case "pen": {
@@ -260,7 +302,14 @@ const Konva = () => {
       default:
         break;
     }
-  }, [pages, activePageIndex, currentTool, dispatch]);
+  }, [
+    pages,
+    activePageIndex,
+    currentTool,
+    project.roomKey,
+    project._id,
+    dispatch,
+  ]);
 
   // const handleDoubleClick = (id) => {
   //   dispatch(startEditing({ id }));
@@ -309,12 +358,12 @@ const Konva = () => {
             {pages[activePageIndex]?.Rectangles.map((rectangle) => (
               <Rect
                 key={rectangle.id}
-                x={rectangle.x}
-                y={rectangle.y}
-                height={rectangle.height}
-                width={rectangle.width}
-                stroke={rectangle.color}
-                strokeWidth={rectangle.strokeWidth}
+                x={rectangle.data.x}
+                y={rectangle.data.y}
+                height={rectangle.data.height}
+                width={rectangle.data.width}
+                stroke={rectangle.data.color}
+                strokeWidth={rectangle.data.strokeWidth}
               />
             ))}
             {pages[activePageIndex]?.Scribbles.map((scribble) => (

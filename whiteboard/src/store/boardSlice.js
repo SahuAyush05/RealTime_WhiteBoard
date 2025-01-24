@@ -47,16 +47,17 @@ const boardSlice = createSlice({
     addRectangle(state, action) {
       const page = state.pages[state.activePageIndex];
       page.Rectangles.push(action.payload);
+      console.log( action.payload.id)
       page.Shapes.push({ id: action.payload.id, type: "rect" });
     },
     updateRectangle(state, action) {
-      const { id, height, width } = action.payload;
-      const rectangle = state.pages[state.activePageIndex].Rectangles.find(
-        (rect) => rect.id === id
+      const { rectangleId, updatedData,pageIndex } = action.payload;
+      const rectangle = state.pages[pageIndex].Rectangles.find(
+        (rect) => rect.id === rectangleId
       );
       if (rectangle) {
-        rectangle.height = height;
-        rectangle.width = width;
+        rectangle.data.height = updatedData.height;
+        rectangle.data.width = updatedData.width;
       }
     },
     addScribble(state, action) {

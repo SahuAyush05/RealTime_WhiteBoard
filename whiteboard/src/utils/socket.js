@@ -7,7 +7,7 @@ export const connectSocket = (url) => {
   if (!socket) {
     socket = io(url, {
       reconnection: true,
-      reconnectionAttempts: 5, 
+      reconnectionAttempts: 5,
       timeout: 10000,
     });
     socket.on("connect", () => {
@@ -44,13 +44,41 @@ export const leaveRoom = (roomKey) => {
   }
 };
 
-export const emitAddPage = (roomKey,projectId) => {
+export const emitAddPage = (roomKey, projectId) => {
   if (socket) {
-    console.log(roomKey);
-    socket.emit("addPage", { roomKey,projectId });
+    socket.emit("addPage", { roomKey, projectId });
   } else {
     console.error("Socket connection not established");
   }
 };
 
+export const addShape = (roomKey, projectId, shape, data, id, pageIdx) => {
+  if (socket) {
+    socket.emit("addShape", { roomKey, projectId, shape, data, id, pageIdx });
+  } else {
+    console.log("Socket Connection not established");
+  }
+};
+
+export const updateShape = (
+  {roomKey,
+  projectId,
+  pageIndex,
+  rectangleId,
+  updatedData,
+  shape}
+) => {
+  if (socket) {
+    socket.emit("updateShape", {
+      roomKey,
+      projectId,
+      pageIndex,
+      rectangleId,
+      updatedData,
+      shape,
+    });
+  } else {
+    console.log("Socket connect not established");
+  }
+};
 export const getSocket = () => socket;
