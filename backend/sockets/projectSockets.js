@@ -72,28 +72,7 @@ const initializeSocket = (server) => {
               message: "Missing required parameters",
             });
           }
-          const project = await Project.findById(projectId);
-          if (!project) {
-            return socket.emit("error", { message: "Project not found" });
-          }
-          switch (shape) {
-            case "Rectangle": {
-              const rect = {
-                data,
-                id,
-              };
-              const updateResult = await Project.updateOne(
-                { _id: projectId, [`pages.${pageIdx}`]: { $exists: true } },
-                { $push: { [`pages.${pageIdx}.Rectangles`]: rect } }
-              );
-              break;
-            }
-            default:
-              return socket.emit("error", {
-                message: "Unsupported shape type",
-              });
-          }
-          await project.save();
+          console.log(data);
           socket.broadcast.to(roomKey).emit("addShapeRes", {
             data,
             id,
@@ -112,38 +91,20 @@ const initializeSocket = (server) => {
         roomKey,
         projectId,
         pageIndex,
-        rectangleId,
+        id,
         updatedData,
         shape,
       }) => {
         try {
-          console.log(projectId, rectangleId, pageIndex);
-          if (!projectId || !rectangleId || pageIndex === undefined) {
+          if (!projectId || !id || pageIndex === undefined) {
             return socket.emit("error", {
               message: "Invalid update shape data",
             });
           }
-
-          let updatedProject;
-          switch (shape) {
-            case "Rectangle": {
-              updatedProject = await updateRectangle(
-                projectId,
-                pageIndex,
-                rectangleId,
-                updatedData
-              );
-              break;
-            }
-            default:
-              return socket.emit("error", {
-                message: "Unsupported shape type",
-              });
-          }
           socket.broadcast.to(roomKey).emit("updateShapeRes", {
             updatedData,
             shape,
-            rectangleId,
+            id,
             pageIndex,
           });
         } catch (error) {
@@ -152,6 +113,28 @@ const initializeSocket = (server) => {
         }
       }
     );
+    socket.on("finalShape", async ({ shapeData, projectId,pageIdx }) => {
+      type = shapeData.type;
+      data = shapeData.data;
+      const project = await Project.findById(projectId);
+      if (!project) {
+        return socket.emit("error", { message: "Project not found" });
+      }
+      switch (type) {
+        case "Rectangle": {
+          const updateResult = await Project.updateOne(
+            { _id: projectId, [`pages.${pageIdx}`]: { $exists: true } },
+            { $push: { [`pages.${pageIdx}.Rectangles.data`]: data } }
+          );
+          break;
+        }
+        default:
+          return socket.emit("error", {
+            message: "Unsupported shape type",
+          });
+      }
+      await project.save();
+    });
     socket.on("disconnect", () => {
       console.log(`Client disconnected: ${socket.id}`);
     });

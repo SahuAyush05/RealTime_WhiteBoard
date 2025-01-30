@@ -18,18 +18,17 @@ const shapeSchema = new mongoose.Schema({
 });
 
 const pageSchema = new mongoose.Schema({
-  pageID: String,
-  Rectangles: [shapeSchema],
-  Scribbles: [shapeSchema],
-  Markers: [shapeSchema],
-  Circles: [shapeSchema],
-  Ellipses: [shapeSchema],
-  Arrows: [shapeSchema],
-  Lines: [shapeSchema],
+  pageId: String,
+  Rectangles: { id: String, data: [shapeSchema] },
+  Scribbles: { id: String, data: [shapeSchema] },
+  Markers: { id: String, data: [shapeSchema] },
+  Circles: { id: String, data: [shapeSchema] },
+  Ellipses: { id: String, data: [shapeSchema] },
+  Arrows: { id: String, data: [shapeSchema] },
+  Lines: { id: String, data: [shapeSchema] },
   Shapes: [{ id: Number, type: String }],
   createdAt: { type: Date, default: Date.now },
 });
-
 
 const projectSchema = new mongoose.Schema(
   {

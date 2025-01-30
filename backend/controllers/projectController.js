@@ -1,5 +1,5 @@
 const Project = require("../model/projectModel");
-const { v4: uuid } = require('uuid');
+const { v4: uuid } = require("uuid");
 const { getSocketInstance } = require("../sockets/projectSockets");
 function generateRoomKey() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -20,27 +20,27 @@ const createProject = async (req, res) => {
       pages: [
         {
           pageId: uuid(),
-          Rectangles:[],
-          Scribbles:[],
-          Marker:[],
-          Circles:[],
-          Ellipses:[],
-          Arrows:[],
-          Lines:[],
+          Rectangles:{ id: uuid(), data: [] },
+          Scribbles:{ id: uuid(), data: [] },
+          Markers: { id: uuid(), data: [] },
+          Circles: { id: uuid(), data: [] },
+          Ellipses: { id: uuid(), data: [] },
+          Arrows: { id: uuid(), data: [] },
+          Lines: { id: uuid(), data: [] },
           Shapes:[],
           createdAt: new Date(),
         },
       ],
-      roomKey
+      roomKey,
     });
-    
+
     // const io = getSocketInstance();
     // io.emit("projectCreated", { projectId: newProject._id, roomKey });
     res.status(200).json({
       message: "Project created successfully",
       _id: newProject._id,
       roomKey,
-      pages:newProject.pages
+      pages: newProject.pages,
     });
   } catch (error) {
     console.error("Error creating project:", error);
@@ -60,7 +60,9 @@ const joinProject = async (req, res) => {
     const project = await Project.findOne({ roomKey });
 
     if (!project) {
-      return res.status(404).json({ error: "No project found with the given roomKey" });
+      return res
+        .status(404)
+        .json({ error: "No project found with the given roomKey" });
     }
 
     res.status(200).json({

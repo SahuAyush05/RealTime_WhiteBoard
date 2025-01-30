@@ -12,7 +12,7 @@ const updateRectangle = async (
     console.log(rectangleId);
     const project = await Project.findOne({ _id: projectId });
     if (project) {
-      const rectangle = project.pages[pageIndex].Rectangles.find(
+      const rectangle = project.pages[pageIndex].Rectangles.data.find(
         (r) => r.id === rectangleId
       );
       if (rectangle) {

@@ -1,6 +1,4 @@
-import { useDispatch } from "react-redux";
 import { io } from "socket.io-client";
-import { addPage } from "../store/boardSlice";
 let socket;
 
 export const connectSocket = (url) => {
@@ -60,23 +58,32 @@ export const addShape = (roomKey, projectId, shape, data, id, pageIdx) => {
   }
 };
 
-export const updateShape = (
-  {roomKey,
+export const updateShape = ({
+  roomKey,
   projectId,
   pageIndex,
-  rectangleId,
+  id,
   updatedData,
-  shape}
-) => {
+  shape,
+}) => {
   if (socket) {
     socket.emit("updateShape", {
       roomKey,
       projectId,
       pageIndex,
-      rectangleId,
+      id,
       updatedData,
       shape,
     });
+  } else {
+    console.log("Socket connect not established");
+  }
+};
+
+export const sendShapeData = ({ shapeData, projectId, pageIdx }) => {
+  
+  if (socket) {
+    socket.emit("finalShape", { shapeData, projectId, pageIdx });
   } else {
     console.log("Socket connect not established");
   }

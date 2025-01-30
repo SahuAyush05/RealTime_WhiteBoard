@@ -46,89 +46,137 @@ const boardSlice = createSlice({
     },
     addRectangle(state, action) {
       const page = state.pages[state.activePageIndex];
-      page.Rectangles.push(action.payload);
-      console.log( action.payload.id)
-      page.Shapes.push({ id: action.payload.id, type: "rect" });
+      page.Rectangles.data.push(action.payload);
+      console.log(page.Rectangles);
+      page.Shapes.push({
+        id: action.payload.id,
+        type: "Rectangle",
+        data: action.payload,
+      });
     },
     updateRectangle(state, action) {
-      const { rectangleId, updatedData,pageIndex } = action.payload;
-      const rectangle = state.pages[pageIndex].Rectangles.find(
-        (rect) => rect.id === rectangleId
+      const { id, updatedData, pageIndex } = action.payload;
+      const rectangle = state.pages[pageIndex].Rectangles.data.find(
+        (rect) => rect.id === id
       );
+      const shape = state.pages[pageIndex].Shapes.find((sh) => sh.id === id);
       if (rectangle) {
         rectangle.data.height = updatedData.height;
         rectangle.data.width = updatedData.width;
       }
+      if (shape) {
+        shape.data.data.height = updatedData.height;
+        shape.data.data.width = updatedData.width;
+      }
     },
     addScribble(state, action) {
       const page = state.pages[state.activePageIndex];
-      page.Scribbles.push(action.payload);
-      page.Shapes.push({ id: action.payload.id, type: "scribble" });
+      page.Scribbles.data.push(action.payload);
+      page.Shapes.push({
+        id: action.payload.id,
+        type: "scribble",
+        data: action.payload,
+      });
     },
     updateScribble(state, action) {
-      const { id, points } = action.payload;
-      const scribble = state.pages[state.activePageIndex].Scribbles.find(
+      const { id, updatedData, pageIndex } = action.payload;
+      const scribble = state.pages[pageIndex].Scribbles.data.find(
         (scrib) => scrib.id === id
       );
+      const shape = state.pages[pageIndex].Shapes.find((sh) => sh.id === id);
       if (scribble) {
-        scribble.points = points;
+        scribble.data.points = updatedData.points;
+      }
+      if (shape) {
+        shape.data.data.points = updatedData.points;
       }
     },
     addMarker(state, action) {
       const page = state.pages[state.activePageIndex];
-      page.Markers.push(action.payload);
-      page.Shapes.push({ id: action.payload.id, type: "marker" });
+      page.Markers.data.push(action.payload);
+      page.Shapes.push({
+        id: action.payload.id,
+        type: "marker",
+        data: action.payload,
+      });
     },
     updateMarker(state, action) {
-      const { id, points } = action.payload;
-      const marker = state.pages[state.activePageIndex].Markers.find(
+      const { id, updatedData, pageIndex } = action.payload;
+      const marker = state.pages[pageIndex].Markers.data.find(
         (mark) => mark.id === id
       );
+      const shape = state.pages[pageIndex].Shapes.find((sh) => sh.id === id);
       if (marker) {
-        marker.points = points;
+        marker.data.points = updatedData.points;
+      }
+      if (shape) {
+        shape.data.data.points = updatedData.points;
       }
     },
     addCircle(state, action) {
       const page = state.pages[state.activePageIndex];
-      page.Circles.push(action.payload);
-      page.Shapes.push({ id: action.payload.id, type: "circle" });
+      page.Circles.data.push(action.payload);
+      page.Shapes.push({
+        id: action.payload.id,
+        type: "circle",
+        data: action.payload,
+      });
     },
     updateCircle(state, action) {
-      const { id, radius } = action.payload;
-      const circle = state.pages[state.activePageIndex].Circles.find(
+      const { id, updatedData, pageIndex } = action.payload;
+      const circle = state.pages[state.activePageIndex].Circles.data.find(
         (c) => c.id === id
       );
+      const shape = state.pages[pageIndex].Shapes.find((sh) => sh.id === id);
       if (circle) {
-        circle.radius = radius;
+        circle.data.radius = updatedData.radius;
+      }
+      if (shape) {
+        shape.data.data.radius = updatedData.radius;
       }
     },
     addEllipse(state, action) {
       const page = state.pages[state.activePageIndex];
-      page.Ellipses.push(action.payload);
-      page.Shapes.push({ id: action.payload.id, type: "ellipse" });
+      page.Ellipses.data.push(action.payload);
+      page.Shapes.push({
+        id: action.payload.id,
+        type: "ellipse",
+        data: action.payload,
+      });
     },
     updateEllipse(state, action) {
-      const { id, radiusX, radiusY } = action.payload;
-      const ellipse = state.pages[state.activePageIndex].Ellipses.find(
+      const { id, updatedData, pageIndex } = action.payload;
+      const ellipse = state.pages[pageIndex].Ellipses.data.find(
         (t) => t.id === id
       );
+      const shape = state.pages[pageIndex].Shapes.find((sh) => sh.id === id);
       if (ellipse) {
-        ellipse.radiusX = radiusX;
-        ellipse.radiusY = radiusY;
+        ellipse.data.radiusX = updatedData.radiusX;
+        ellipse.data.radiusY = updatedData.radiusY;
+      }
+      if (shape) {
+        shape.data.data.radiusX = updatedData.radiusX;
+        shape.data.data.radiusY = updatedData.radiusY;
       }
     },
     addArrow(state, action) {
       const page = state.pages[state.activePageIndex];
-      page.Arrows.push(action.payload);
-      page.Shapes.push({ id: action.payload.id, type: "arrow" });
+      page.Arrows.data.push(action.payload);
+      page.Shapes.push({
+        id: action.payload.id,
+        type: "arrow",
+        data: action.payload,
+      });
     },
     updateArrow(state, action) {
-      const { id, points } = action.payload;
-      const arrow = state.pages[state.activePageIndex].Arrows.find(
-        (a) => a.id === id
-      );
+      const { id, updatedData, pageIndex } = action.payload;
+      const arrow = state.pages[pageIndex].Arrows.data.find((a) => a.id === id);
+      const shape = state.pages[pageIndex].Shapes.find((sh) => sh.id === id);
       if (arrow) {
-        arrow.points = points;
+        arrow.data.points = updatedData.points;
+      }
+      if (shape) {
+        shape.data.data.points = updatedData.points;
       }
     },
     // addText(state, action) {

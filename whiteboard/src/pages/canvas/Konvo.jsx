@@ -2,7 +2,12 @@
 import { useRef, useCallback, useEffect } from "react";
 import { Layer, Rect, Line, Stage, Circle, Ellipse, Arrow } from "react-konva";
 import { useDispatch, useSelector } from "react-redux";
-import { addShape, getSocket, updateShape } from "../../utils/socket";
+import {
+  addShape,
+  getSocket,
+  sendShapeData,
+  updateShape,
+} from "../../utils/socket";
 import {
   addRectangle,
   updateRectangle,
@@ -40,13 +45,11 @@ const Konva = () => {
   useEffect(() => {
     const socket = getSocket();
     const handlePageAdded = ({ newPage, pages }) => {
-      console.log("PageAdded");
       dispatch(addPage(newPage));
       dispatch(setActivePage(pages.length));
     };
-    
+
     const handleAddShape = ({ data, id, shape }) => {
-      console.log(data, id, shape);
       switch (shape) {
         case "Rectangle": {
           dispatch(
@@ -57,19 +60,79 @@ const Konva = () => {
           );
           break;
         }
+        case "Pen": {
+          dispatch(
+            addScribble({
+              data,
+              id,
+            })
+          );
+          break;
+        }
+        case "Marker": {
+          dispatch(
+            addMarker({
+              data,
+              id,
+            })
+          );
+          break;
+        }
+        case "Circle": {
+          dispatch(
+            addCircle({
+              data,
+              id,
+            })
+          );
+          break;
+        }
+        case "Ellipse": {
+          dispatch(
+            addEllipse({
+              data,
+              id,
+            })
+          );
+          break;
+        }
+        case "Arrow": {
+          dispatch(
+            addArrow({
+              data,
+              id,
+            })
+          );
+          break;
+        }
         default:
           break;
       }
     };
-    const handleUpdateShape = ({
-      updatedData,
-      shape,
-      rectangleId,
-      pageIndex,
-    }) => {
+    const handleUpdateShape = ({ updatedData, shape, id, pageIndex }) => {
       switch (shape) {
         case "Rectangle": {
-          dispatch(updateRectangle({ updatedData, rectangleId, pageIndex }));
+          dispatch(updateRectangle({ updatedData, id, pageIndex }));
+          break;
+        }
+        case "Pen": {
+          dispatch(updateScribble({ updatedData, id, pageIndex }));
+          break;
+        }
+        case "Marker": {
+          dispatch(updateMarker({ updatedData, id, pageIndex }));
+          break;
+        }
+        case "Circle": {
+          dispatch(updateCircle({ updatedData, id, pageIndex }));
+          break;
+        }
+        case "Ellipse": {
+          dispatch(updateEllipse({ updatedData, id, pageIndex }));
+          break;
+        }
+        case "Arrow": {
+          dispatch(updateArrow({ updatedData, id, pageIndex }));
           break;
         }
         default:
@@ -92,8 +155,15 @@ const Konva = () => {
 
   const onStageMouseUp = useCallback(() => {
     isPaintRef.current = false;
-  }, []);
-  
+    console.log(pages);
+    const len = pages[activePageIndex].Shapes.length;
+    const shapeData = pages[activePageIndex].Shapes[len - 1];
+    const pageIdx = activePageIndex;
+    const projectId = project._id;
+    if (shapeData) {
+      sendShapeData({ shapeData, projectId, pageIdx });
+    }
+  }, [activePageIndex, pages, project._id]);
 
   const onStageMouseDown = useCallback(() => {
     isPaintRef.current = true;
@@ -119,7 +189,6 @@ const Konva = () => {
         };
         const shape = "Rectangle";
         const pageIdx = activePageIndex;
-        console.log(project._id, pageIdx);
         dispatch(
           addRectangle({
             id,
@@ -127,86 +196,116 @@ const Konva = () => {
             data,
           })
         );
-        addShape(project.roomKey, project._id, shape, data, id, pageIdx)
+        addShape(project.roomKey, project._id, shape, data, id, pageIdx);
         break;
       }
       case "pen": {
+        const data = {
+          points: [x, y],
+          color: strokeColor,
+          dash: dash,
+          strokeWidth,
+        };
+        const shape = "Pen";
+        const pageIdx = activePageIndex;
         dispatch(
           addScribble({
             id,
-            points: [x, y],
             pageId: activePage.id,
-            color: strokeColor,
-            strokeWidth,
-            dash: dash,
-            type: "pen",
+            data,
           })
         );
+        addShape(project.roomKey, project._id, shape, data, id, pageIdx);
         break;
       }
       case "marker": {
+        const data = {
+          points: [x, y],
+          color: markerColor,
+          strokeWidth,
+        };
         dispatch(
           addMarker({
             id,
-            points: [x, y],
             pageId: activePage.id,
-            color: markerColor,
-            strokeWidth,
-            type: "marker",
+            data,
           })
         );
+        const shape = "Marker";
+        const pageIdx = activePageIndex;
+        addShape(project.roomKey, project._id, shape, data, id, pageIdx);
         break;
       }
       case "circle": {
+        const data = { x, y, radius: 1, color: strokeColor, strokeWidth };
         dispatch(
           addCircle({
             id,
-            x,
-            y,
-            radius: 1,
             pageId: activePage.id,
-            color: strokeColor,
-            strokeWidth,
-            type: "circle",
+            data,
           })
         );
+        const shape = "Circle";
+        const pageIdx = activePageIndex;
+        addShape(project.roomKey, project._id, shape, data, id, pageIdx);
         break;
       }
       case "ellipse": {
+        const data = {
+          x,
+          y,
+          radiusX: 1,
+          radiusY: 1,
+          color: strokeColor,
+          strokeWidth,
+        };
         dispatch(
           addEllipse({
             id,
-            x,
-            y,
-            radiusX: 1,
-            radiusY: 1,
             pageId: activePage.id,
-            color: strokeColor,
-            strokeWidth,
-            type: "ellipse",
+            data,
           })
         );
+        const shape = "Ellipse";
+        const pageIdx = activePageIndex;
+        addShape(project.roomKey, project._id, shape, data, id, pageIdx);
         break;
       }
       case "arrow": {
+        const data = {
+          x,
+          y,
+          points: [x, y, x, y],
+          color: strokeColor,
+          strokeWidth,
+        };
         dispatch(
           addArrow({
             id,
-            x,
-            y,
-            points: [x, y, x, y], // Initial points
             pageId: activePage.id,
-            color: strokeColor,
-            strokeWidth,
-            type: "arrow",
+            data,
           })
         );
+        const shape = "Arrow";
+        const pageIdx = activePageIndex;
+        addShape(project.roomKey, project._id, shape, data, id, pageIdx);
         break;
       }
       default:
         break;
     }
-  }, [pages, activePageIndex, currentTool, strokeColor, strokeWidth, project._id, project.roomKey, dispatch, dash, markerColor]);
+  }, [
+    pages,
+    activePageIndex,
+    currentTool,
+    strokeColor,
+    strokeWidth,
+    project._id,
+    project.roomKey,
+    dispatch,
+    dash,
+    markerColor,
+  ]);
 
   const onStageMouseMove = useCallback(() => {
     if (!isPaintRef.current) return;
@@ -226,75 +325,124 @@ const Konva = () => {
           height: y,
           width: x,
         };
-        const rectangleId= id
-        const pageIndex= activePageIndex
+        const pageIndex = activePageIndex;
         updateShape({
           roomKey: project.roomKey,
           projectId: project._id,
-          rectangleId: id,
+          id,
           updatedData,
           pageIndex: activePageIndex,
           shape: "Rectangle",
         });
-        dispatch(updateRectangle( {rectangleId,updatedData, pageIndex}) )
+        dispatch(updateRectangle({ id, updatedData, pageIndex }));
         break;
       }
       case "pen": {
-        const scribble = pages[activePageIndex].Scribbles.find(
-          (s) => s.id === id
-        );
+        const scribble = activePage.Scribbles.data.find((s) => s.id === id);
         if (scribble) {
+          const updatedData = {
+            points: [...scribble.data.points, x, y],
+          };
+          updateShape({
+            roomKey: project.roomKey,
+            projectId: project._id,
+            id,
+            updatedData,
+            pageIndex: activePageIndex,
+            shape: "Pen",
+          });
           dispatch(
-            updateScribble({
-              id,
-              points: [...(scribble.points || []), x, y],
-            })
+            updateScribble({ id, updatedData, pageIndex: activePageIndex })
           );
         }
         break;
       }
+
       case "marker": {
-        const mark = pages[activePageIndex].Markers.find((m) => m.id === id);
+        const mark = activePage.Markers.data.find((m) => m.id === id);
         if (mark) {
+          const updatedData = {
+            points: [...mark.data.points, x, y],
+          };
+          updateShape({
+            roomKey: project.roomKey,
+            projectId: project._id,
+            id,
+            updatedData,
+            pageIndex: activePageIndex,
+            shape: "Marker",
+          });
           dispatch(
-            updateMarker({
-              id,
-              pageId: activePage.id,
-              points: [...(mark.points || []), x, y],
-            })
+            updateMarker({ id, updatedData, pageIndex: activePageIndex })
           );
         }
         break;
       }
+
       case "circle": {
-        const circle = pages[activePageIndex].Circles.find((c) => c.id === id);
+        const circle = activePage.Circles.data.find((c) => c.id === id);
         if (circle) {
-          const radius = Math.sqrt((x - circle.x) ** 2 + (y - circle.y) ** 2);
-          dispatch(updateCircle({ id, pageId: activePage.id, radius }));
-        }
-        break;
-      }
-      case "ellipse": {
-        const ellipse = pages[activePageIndex].Ellipses.find(
-          (e) => e.id === id
-        );
-        if (ellipse) {
-          const radiusX = Math.abs(x - ellipse.x);
-          const radiusY = Math.abs(y - ellipse.y);
+          const radius = Math.sqrt((x - circle.data.x) ** 2 + (y - circle.data.y) ** 2);
+          console.log(radius);
+          const updatedData = {
+            radius,
+          };
+          updateShape({
+            roomKey: project.roomKey,
+            projectId: project._id,
+            id,
+            updatedData,
+            pageIndex: activePageIndex,
+            shape: "Circle",
+          });
           dispatch(
-            updateEllipse({ id, pageId: activePage.id, radiusX, radiusY })
+            updateCircle({ id, updatedData, pageIndex: activePageIndex })
           );
         }
         break;
       }
-      case "arrow": {
-        const arrow = pages[activePageIndex].Arrows.find((a) => a.id === id);
-        if (arrow) {
-          const newPoints = [...arrow.points];
-          newPoints[2] = x;
-          newPoints[3] = y;
+
+      case "ellipse": {
+        const ellipse = activePage.Ellipses.data.find((e) => e.id === id);
+        if (ellipse) {
+          const updatedData = {
+            radiusX: Math.abs(x - ellipse.data.x),
+            radiusY: Math.abs(y - ellipse.data.y),
+          };
+          updateShape({
+            roomKey: project.roomKey,
+            projectId: project._id,
+            id,
+            updatedData,
+            pageIndex: activePageIndex,
+            shape: "Ellipse",
+          });
           dispatch(
-            updateArrow({ id, pageId: activePage.id, points: newPoints })
+            updateEllipse({ id, updatedData, pageIndex: activePageIndex })
+          );
+        }
+        break;
+      }
+
+      case "arrow": {
+        const arrow = activePage.Arrows.data.find((a) => a.id === id);
+        if (arrow) {
+          const updatedPoints = [...arrow.data.points];
+          updatedPoints[2] = x;
+          updatedPoints[3] = y;
+          const updatedData = {
+            points: updatedPoints,
+          };
+          updateShape({
+            roomKey: project.roomKey,
+            projectId: project._id,
+            id,
+            updatedData,
+            pageIndex: activePageIndex,
+            shape: "Arrow",
+          });
+          dispatch(
+            updateArrow({ id, updatedData, pageIndex: activePageIndex })
           );
         }
         break;
@@ -355,7 +503,7 @@ const Konva = () => {
           className="bg-white"
         >
           <Layer>
-            {pages[activePageIndex]?.Rectangles.map((rectangle) => (
+            {pages[activePageIndex]?.Rectangles.data.map((rectangle) => (
               <Rect
                 key={rectangle.id}
                 x={rectangle.data.x}
@@ -366,60 +514,60 @@ const Konva = () => {
                 strokeWidth={rectangle.data.strokeWidth}
               />
             ))}
-            {pages[activePageIndex]?.Scribbles.map((scribble) => (
+            {pages[activePageIndex]?.Scribbles.data.map((scribble) => (
               <Line
                 key={scribble.id}
-                points={scribble.points || []}
-                stroke={scribble.color}
-                strokeWidth={scribble.strokeWidth}
+                points={scribble.data.points || []}
+                stroke={scribble.data.color}
+                strokeWidth={scribble.data.strokeWidth}
                 tension={0.5}
                 lineCap="round"
                 lineJoin="round"
-                dash={scribble.dash}
+                dash={scribble.data.dash}
               />
             ))}
-            {pages[activePageIndex]?.Markers.map((mark) => (
+            {pages[activePageIndex]?.Markers.data.map((mark) => (
               <Line
                 key={mark.id}
-                points={mark.points || []}
-                stroke={mark.color}
-                strokeWidth={mark.strokeWidth}
+                points={mark.data.points || []}
+                stroke={mark.data.color}
+                strokeWidth={mark.data.strokeWidth}
                 tension={0.5}
                 lineCap="round"
                 lineJoin="round"
               />
             ))}
-            {pages[activePageIndex]?.Circles.map((circle) => (
+            {pages[activePageIndex]?.Circles.data.map((circle) => (
               <Circle
                 key={circle.id}
-                x={circle.x}
-                y={circle.y}
-                radius={circle.radius}
-                stroke={circle.color}
-                strokeWidth={circle.strokeWidth}
+                x={circle.data.x}
+                y={circle.data.y}
+                radius={circle.data.radius}
+                stroke={circle.data.color}
+                strokeWidth={circle.data.strokeWidth}
               />
             ))}
-            {pages[activePageIndex]?.Ellipses.map((ellipse) => (
+            {pages[activePageIndex]?.Ellipses.data.map((ellipse) => (
               <Ellipse
                 key={ellipse.id}
-                x={ellipse.x}
-                y={ellipse.y}
-                radiusX={ellipse.radiusX}
-                radiusY={ellipse.radiusY}
-                stroke={ellipse.color}
-                strokeWidth={ellipse.strokeWidth}
+                x={ellipse.data.x}
+                y={ellipse.data.y}
+                radiusX={ellipse.data.radiusX}
+                radiusY={ellipse.data.radiusY}
+                stroke={ellipse.data.color}
+                strokeWidth={ellipse.data.strokeWidth}
                 closed
               />
             ))}
-            {pages[activePageIndex]?.Arrows.map((arrow) => (
+            {pages[activePageIndex]?.Arrows.data.map((arrow) => (
               <Arrow
                 key={arrow.id}
-                points={arrow.points}
-                pointerLength={10}
-                pointerWidth={10}
-                fill={arrow.color}
-                stroke={arrow.color}
-                strokeWidth={arrow.strokeWidth}
+                points={arrow.data.points}
+                pointerLength={8}
+                pointerWidth={8}
+                fill={arrow.data.color}
+                stroke={arrow.data.color}
+                strokeWidth={arrow.data.strokeWidth}
               />
             ))}
             {/* {texts.map((text) => (
